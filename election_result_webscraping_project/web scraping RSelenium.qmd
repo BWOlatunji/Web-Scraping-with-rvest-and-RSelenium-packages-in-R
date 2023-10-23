@@ -1,0 +1,100 @@
+---
+title: "Web Scraping with rvest and RSelenium in R, Part2"
+format: html
+editor: visual
+---
+
+## 1. Introduction to Web scraping
+
+
+## Installing the libraries
+
+```{r}
+# install.packages("RSelenium")
+# install.packages("netstat")
+# install.packages("tidyverse")
+```
+
+## Loading libraries
+
+```{r libraries,warning=FALSE,message=FALSE}
+# Load packages
+library(RSelenium)
+library(netstat)
+library(tidyverse)
+```
+
+## Navigating to a web page
+
+```{r, warning=FALSE,message=FALSE}
+
+# rD <- rsDriver(browser = "firefox", version = "latest", platform = "WINDOWS")
+
+```
+
+
+```{r}
+
+# remDr <- rD$client
+
+```
+
+## Use the Chrome browser
+
+```{r message=FALSE,warning=FALSE}
+# remote driver session using rsDriver() from  the RSelenium package
+rs_driver_object <- rsDriver(browser = 'chrome',
+                             chromever = "118.0.5993.70",
+                             # from netstat package
+                             port = free_port(),
+                             verbose = FALSE)
+
+remDr <- rs_driver_object$client
+```
+
+
+
+```{r}
+# Navigate to the webpage
+# remDr$navigate('https://www.stears.co/elections/2023/president/')
+# or
+election_result_url <- 'https://www.stears.co/elections/2023/president/'
+remDr$navigate(election_result_url)
+
+```
+
+
+## Explore the HTML elements
+
+### Looking at single and multiple elements
+
+-   single and multiple html elements
+
+```{r}
+
+rs_president_title <- remDr$findElement(using = 'css', '.font-jakarta.hidden.md\\:block.font-medium.text-\\[20px\\].leading-\\[32px\\]')
+
+rs_president_title_text <- rs_president_title$getElementText()
+
+
+print(rs_president_title_text)
+
+rs_summary_paragraphs <- remDr$findElements(using = 'css', '.-md\\:hidden.mt-1.text-gray-600.text-sm')
+rs_summary_paragraphs_text <- unlist(lapply(rs_summary_paragraphs, function(x) x$getElementText()))
+
+
+
+print(rs_summary_paragraphs_text)
+
+```
+
+
+Save extracted data as a data frame
+
+```{r}
+data_df <- data.frame(paragraph = rs_summary_paragraphs_text)
+
+View(data_df)
+
+```
+

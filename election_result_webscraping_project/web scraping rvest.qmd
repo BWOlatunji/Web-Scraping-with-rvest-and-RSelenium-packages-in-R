@@ -1,0 +1,102 @@
+---
+title: "Web Scraping with rvest and RSelenium in R, Part1"
+format: html
+editor: visual
+---
+
+## Introduction to Web scraping
+
+Web scraping is the process of extracting data from websites using automated tools or software. Some of the tools that can be used to perform web scraping in R are the `rvest` and `RSelenium` package.
+
+`rvest` helps you scrape (or harvest) data from web pages. It is designed to work with `magrittr` to make it easy to express common web scraping tasks, inspired by libraries like Beautiful soup and RoboBrowser.
+
+`RSelenium` on the other hand provides a set of R bindings for the Selenium WebDriver, which is a tool that allows driving a web browser natively as a user would either locally or on a remote machine using the `Selenium` server. `Selenium` automates web browsers and can interact with dynamic web pages that use JavaScript, Ajax, or other technologies.
+
+In this blog post, I will explain step by step how to do web scraping in R using the `rvest` and `RSelenium` package. I will use an example of scraping the **2023 Nigeria Presidential Election** results from [Stears website](https://www.stears.co/).
+
+### Web scraping benefit to a business
+
+1.  Keeping pace with the competition: Web scraping can help a business monitor the market trends, product launches, pricing strategies, and customer feedback of its competitors. This can help a business gain insights into its strengths and weaknesses, and adjust its own plans accordingly.
+
+2.  Optimizing your value proposition: Web scraping can help a business set the optimal prices for its products or services by analyzing the demand, supply, and customer preferences in the market. Web scraping can also help a business create dynamic pricing models that can adapt to changing market conditions.
+
+3.  Generating quality leads: Web scraping can help a business find potential customers who are interested in its products or services by collecting their contact information, preferences, and behavior from various websites. Web scraping can also help a business segment and target its leads based on various criteria.
+
+4.  Refining product development: Web scraping can help a business improve its products or services by gathering feedback, reviews, ratings, and suggestions from customers and users on various platforms. Web scraping can also help a business identify the gaps and opportunities in the market, and design new features or solutions accordingly.
+
+    These are some of the benefits of web scraping for a business. However, web scraping also has some challenges and limitations, such as legal and ethical issues, data quality and reliability, technical difficulties, and anti-scraping measures. Therefore, a business should use web scraping responsibly and carefully, and consult with experts if needed.
+
+## Installing the libraries
+
+```{r}
+# install.packages("rvest")
+# install.packages("tidyverse")
+```
+
+## Loading libraries
+
+```{r libraries,warning=FALSE,message=FALSE}
+# Load packages
+library(rvest)
+library(tidyverse)
+```
+
+## Navigating to a web page
+
+```{r}
+# Using rvest, navigate to the web page
+presidential_result_page <-
+  read_html('https://www.stears.co/elections/2023/president/')
+
+```
+
+## Explore the HTML elements
+
+### Looking at single and multiple elements
+
+-   single elements
+
+```{r}
+# .font-jakarta.hidden.md:block.font-medium.text-[20px].leading-[32px]
+
+president_title <- presidential_result_page %>% html_element("h3.font-jakarta.hidden.md\\:block.font-medium.text-\\[20px\\].leading-\\[32px\\]")
+
+print(president_title)
+
+```
+
+Extract text from the html_node
+
+```{r}
+president_title_text <- president_title %>% html_text()
+
+print(president_title_text)
+```
+
+-   multiple elements
+
+```{r}
+summary_paragraphs <- presidential_result_page %>% 
+  html_elements('.-md\\:hidden.mt-1.text-gray-600.text-sm')
+
+print(summary_paragraphs)
+```
+
+Extract the text from the html_nodes
+
+```{r}
+summary_paragraphs_text <- summary_paragraphs %>% html_text()
+
+print(summary_paragraphs_text)
+
+class(summary_paragraphs_text)
+```
+
+Save extracted data as a data frame
+
+```{r}
+data_df <- data.frame(paragraph = summary_paragraphs_text)
+
+View(data_df)
+
+```

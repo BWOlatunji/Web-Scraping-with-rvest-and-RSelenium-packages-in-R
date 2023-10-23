@@ -1,0 +1,370 @@
+---
+title: "Web Scraping with rvest and RSelenium in R"
+format: html
+editor: visual
+---
+
+## 1. Introduction to Web scraping
+
+Web scraping is a technique used to collect content and data from the internet. This data is usually saved in a local file so that it can be manipulated and analyzed as needed. Web scraping can be used for various purposes, such as extracting information from websites, scraping social media posts, scraping product reviews, scraping prices, and more.
+
+Some of the tools that can be used to perform web scraping in R are the `rvest` and `RSelenium` package.
+
+`rvest` helps you scrape (or harvest) data from web pages. It is designed to work with `magrittr` to make it easy to express common web scraping tasks, inspired by libraries like beautiful soup and RoboBrowser.
+
+`RSelenium` on the other hand provides a set of R bindings for the Selenium WebDriver, which is a tool that allows driving a web browser natively as a user would either locally or on a remote machine using the `Selenium` server. `Selenium` automates web browsers and can interact with dynamic web pages that use JavaScript, Ajax, or other technologies.
+
+In this blog post, I will explain step by step how to do web scraping in R using the `rvest` and `RSelenium` package. I will use an example of scraping the **2023 Nigeria Presidential Election** results from [Stears website](https://www.stears.co/).
+
+## Installing the libraries
+
+To get started, we need to install the `rvest` and `RSelenium` packages as well as some supporting packages - `wdman`, `netstat`, and our trusty `tidyverse` package. To install these packages, run the script below.
+
+```{r}
+install.packages("rvest")
+install.packages("RSelenium")
+install.packages("wdman")
+install.packages("netstat")
+```
+
+However, you need to have Java (also known as **Java** Runtime Environment or JRE) running on your computer to get `RSelenium` package working properly. I will share a link to the guidelines in the description below. You can follow this [guideline](https://www.java.com/en/download/help/windows_manual_download.html) to download and install it on your windows laptop. [Samer Hijjazi](https://www.youtube.com/watch?v=GnpJujF9dBw){style="font-size: 13pt;"}'s YouTube video is a great resource to get the `RSelenium` package running in a simplified way. I will also share the link to the video in the description below.
+
+With the installation done, we'll continue by loading the installed packages.
+
+## Loading libraries
+
+```{r libraries,warning=FALSE,message=FALSE}
+# Load packages
+library(RSelenium)
+library(rvest)
+library(wdman)
+library(netstat)
+library(tidyverse)
+```
+
+### Navigating to a web page
+
+Next, we need to navigate and read the target website. In this case, the [Nigeria Presidential election results and data 2023](https://www.stears.co/elections/2023/president/)
+
+-   using rvest
+
+```{r}
+# Using rvest, navigate to the web page
+presidential_result_page <-
+  read_html('https://www.stears.co/elections/2023/president/')
+```
+
+## Explore the HTML elements
+It's time to explore what are the data we can extract from the web page now that we have access and control of it.
+
+### Looking at single and multiple elements
+
+The next step is to locate and extract the web elements that contain the data that we want to scrape. You can use various functions from both the `rvest` and `RSelenium` package to do this.
+
+  - using rvest
+  
+In the `rvest` package, these functions take an xml_document object and a selector as arguments and return an object of class xml_nodeset or a single xml_node that match the selector. A selector is a way of identifying a web element based on its attributes, such as id, name, class, tag name, CSS selector, or XPath expression.
+
+### Show and tell on the web page in the browser
+
+# -   single elements
+
+For example, to locate and extract the bold text title - "2023 Presidential results" on the web page, you can use the html_nodes function with a CSS selector as follows:
+
+```{r}
+president_title <- presidential_result_page %>% html_element("h3.font-jakarta.hidden.md\\:block.font-medium.text-\\[20px\\].leading-\\[32px\\]")
+
+print(president_title)
+
+```
+
+
+This will return an xml_nodeset of 20 xml_nodes that represent the text that contain the title we want.
+
+To extract the text from these xml_nodes, you can use the html_text function from the rvest package. This function takes an xml_node or an xml_nodeset as an argument and returns their text content as a character vector. For example, to extract the text from the titles object, you can run:
+
+```{r}
+president_title_text <- president_title %>% html_text()
+
+print(president_title_text)
+```
+
+
+This will return a character vector.
+
+# -   multiple elements
+Similarly, to locate and extract the 3 paragraph below the title we just scraped from the website. Let's take a look at the pagraph to know which selector to use. Then we can use the html_elements function with another CSS selector as follows:
+
+```{r}
+summary_paragraphs <- presidential_result_page %>% 
+  html_elements('.-md\\:hidden.mt-1.text-gray-600.text-sm')
+
+print(summary_paragraphs)
+```
+
+This will return an xml_nodeset of 3 xml_nodes that represent the paragraphs that contain the summary of the election results.
+
+To extract the text from these xml_nodes, you can use the html_text function again as follows:
+```{r}
+summary_paragraphs_text <- summary_paragraphs %>% html_text()
+
+print(summary_paragraphs_text)
+```
+
+
+This will return a character vector of 3 strings.
+
+Step 4: Store and manipulate the scraped data
+The final step is to store and manipulate the scraped data as needed. You can use various functions from R to do this. For example, you can create a data frame from the scraped data using the data.frame function as follows:
+
+```{r}
+data_df <- data.frame(paragraph = summary_paragraphs_text)
+
+View(data_df)
+
+```
+
+  - using RSelenium
+
+It's a bit different when using the RSelenium package. First, we need to start a Selenium server and a web browser that will be used for web scraping. You can use the `rsDriver()` function from the RSelenium package to do this. This function will automatically download the necessary files and start the server and the browser. You can specify the browser name, version, and platform as arguments to this function. For example, to start a Firefox browser on Windows, you can run the following code:
+
+```{r, warning=FALSE,message=FALSE}
+
+# rD <- rsDriver(browser = "firefox", version = "latest", platform = "WINDOWS")
+
+```
+
+This will return an object that contains two elements: server and client. The server element is an object of class wdman, which represents the Selenium server. The client element is an object of class remoteDriver, which represents the web browser. You can access these elements using the \$ operator. For example, to access the client element, you can run:
+
+```{r}
+
+# remDr <- rD$client
+
+```
+
+For this tutorial, I will be using the chrome browser as shown below.
+
+```{r message=FALSE,warning=FALSE}
+# remote driver session using rsDriver() from  the RSelenium package
+rs_driver_object <- rsDriver(browser = 'chrome',
+                             chromever = "118.0.5993.70",
+                             # from netstat package
+                             # generates a free ports i.e. TCP
+                             port = free_port(),
+                             verbose = FALSE)
+
+remDr <- rs_driver_object$client
+```
+
+The next step is to navigate to the target website that you want to scrape. You can use the `navigate()` function from the `RSelenium` package to do this. This function takes a ***remoteDriver*** object and a URL as arguments and opens the URL in the web browser.
+
+For example, to navigate to the election results website, you can run:
+
+```{r}
+# Navigate to the webpage
+# remDr$navigate('https://www.stears.co/elections/2023/president/')
+# or
+election_result_url <- 'https://www.stears.co/elections/2023/president/'
+remDr$navigate(election_result_url)
+
+```
+
+This will open the website in the Chrome browser.
+These functions take a remoteDriver object and a locator strategy as arguments and return an object of class webElement or a list of webElements. A locator strategy is a way of identifying a web element based on its attributes, such as id, name, class, tag name, CSS selector, or XPath expression.
+For example, to locate and extract the titles of books from the website, you can use the findElements function with a CSS selector as follows:
+
+
+```{r}
+# election_result_url <- 'https://www.stears.co/elections/2023/president/'
+# remDr$navigate(election_result_url)
+
+president_title <- remDr$findElement(using = 'css', '.font-jakarta.hidden.md\\:block.font-medium.text-\\[20px\\].leading-\\[32px\\]')
+
+president_title_text <- president_title$getElementText()
+
+
+print(president_title_text)
+
+summary_paragraphs <- remDr$findElements(using = 'css', '.-md\\:hidden.mt-1.text-gray-600.text-sm')
+summary_paragraphs_text <- unlist(lapply(summary_paragraphs, function(x) x$getElementText()))
+
+print(summary_paragraphs_text)
+
+data_df <- data.frame(paragraph = summary_paragraphs_text)
+
+View(data_df)
+
+```
+
+### 2023 Presidential resultsIt's time to look at a practical use case. In this tutorial, it's going to be 2023 Nigeria Presidential election.
+
+-   Summarized results
+We look at the summarized result data
+
+```{r}
+
+# extract all state names
+summary_div <- presidential_result_page |> html_elements("div.mb-4")
+
+summarised_result_tbl <- tibble(
+candidate_name = summary_div |> 
+  html_elements("article.border-gray-10") |> 
+  html_elements("p.font-jakarta.text-p_15_15.font-medium.text-gray-800") |> 
+  html_text2(),
+# party
+candidate_party = summary_div |> 
+  html_elements("article.border-gray-10") |> 
+  html_elements("div") |> 
+  html_elements("p.font-jakarta.font-jakarta.text-p_15_15.font-light.text-gray-600") |> 
+  html_text2(),
+# total result
+total_result = summary_div |> 
+  html_elements("article.border-gray-10") |> 
+  html_elements("div") |> 
+  html_elements("p.font-jakarta.font-jakarta.text-p_12_12.font-light.text-gray-800") |> 
+  html_text2(),
+# percentage of result
+pct_result = summary_div |> 
+  html_elements("article.border-gray-10") |> 
+  html_elements("div") |> 
+  html_elements("p.font-jakarta.font-jakarta.text-p_12_12.font-light.text-gray-600.ml-1") |> 
+  html_text2()
+)
+
+```
+
+## Scrape all results down to State and LGA levels
+
+First, we need extract the state urls, or web address where we can get all results at the lga levels
+
+```{r}
+
+# find and click the "Select State" drop-down
+state_dropdown <-
+  remDr$findElement(using = 'id',
+                    'headlessui-menu-button-:R356t6:')
+
+# the dropdown is clicked to open it
+state_dropdown$clickElement()
+
+# scrape all state url from their generated anchors
+page_source <- remDr$getPageSource()
+page <- read_html(page_source[[1]])
+state_anchor_hrefs <- page  |>  
+  html_elements(".flex.flex-col.justify-start.align-middle") |> 
+  html_elements("a.text-gray-800")  |> 
+  html_attr("href")
+
+
+# Concatenate the main URL to each element of the state_anchors_href vector
+# to generate the state results full URLs
+state_results_urls <- paste("https://www.stears.co", state_anchor_hrefs, sep = "")
+
+
+```
+
+Now, let's extract the results for all states and lgas. But let's start by extracting for the first state, Abia State.
+
+```{r}
+
+abia_state_page <- read_html(state_results_urls[[1]])
+
+# extract all state names
+abia_result_tables <- abia_state_page |> 
+  html_element("div.px-6.py-10.bg-white.md\\:px-8.md\\:py-6") |> 
+  html_elements("section.mb-4") |> 
+  html_table()
+
+abia_lga_names <- abia_state_page |> 
+  html_element("div.px-6.py-10.bg-white.md\\:px-8.md\\:py-6") |> 
+  html_elements("section.mb-4") |> 
+  html_elements("p.font-jakarta.font-jakarta.text-p_20.font-medium.-md\\:hidden.mt-10.capitalize") |> 
+  html_text2()
+
+# print(abia_lga_names)
+
+abia_state_name <- abia_state_page |>  
+  html_element("h1.w-full.h-12.font-bold.font-jakarta.text-\\[28px\\].leading-\\[40px\\]") |> 
+  html_text2()
+
+# print(abia_state_name)
+
+# first lga i.e. Umuahia North
+Umuahia_North_lga_tbl <- abia_result_tables[[1]] |> add_column(LGA=abia_lga_names[[1]],
+                                             STATE=abia_state_name,
+                             .before = "Candidate")
+
+# print(Umuahia_North_lga_tbl)
+
+```
+
+It's time to use the same steps that we used for a single state for all the other states by using the for loop to iterate through the states and the lgas one by one.
+
+```{r}
+all_states_results <- list()
+# loop through the url for each state
+for (state_results_url in state_results_urls) {
+  state_page <- read_html(state_results_url)
+  
+  # extract all state results by lga. The result for each lga is kept in a table
+  # on the page
+  result_tables <- state_page |> 
+    html_element("div.px-6.py-10.bg-white.md\\:px-8.md\\:py-6") |> 
+    html_elements("section.mb-4") |> 
+    html_table()
+  
+  lga_names <- state_page |> 
+    html_element("div.px-6.py-10.bg-white.md\\:px-8.md\\:py-6") |> 
+    html_elements("section.mb-4") |> 
+    html_elements("p.font-jakarta.font-jakarta.text-p_20.font-medium.-md\\:hidden.mt-10.capitalize") |> 
+    html_text2()
+  
+  state_name <- state_page |>  
+    html_element("h1.w-full.h-12.font-bold.font-jakarta.text-\\[28px\\].leading-\\[40px\\]") |> 
+    html_text2()
+
+  
+  # Iterate through the list of tables and add the STATE and LGA columns
+  for (i in 1:length(lga_names)) {
+    # Reference each table using their indices
+    table_index <- i
+    current_table <- result_tables[[table_index]]
+    
+    # Add LGA and STATE columns to the current table using the vector element
+    current_table["LGA"] <- lga_names[i]
+    current_table["STATE"] <- state_name
+    
+    # Update the current table in the list
+    result_tables[[table_index]] <- current_table
+  }
+  
+  all_states_results <- append(all_states_results, result_tables)
+  
+}
+```
+
+### Print out the result
+
+```{r}
+# Print the modified list of tables
+print(all_states_results[[1]])
+print(all_states_results[[100]])
+print(all_states_results[[774]])
+
+```
+
+### Data manipulation
+
+Hurray, we did it. Now, as a data analyst we can do better by manipulating the data to get a somewhat clean and neat data. First, we don't nee the Votes Margin column. So, we take it out. Next, we replace all the NAs with the appropriate replacement values.
+
+```{r}
+# Bind all tables in the all_states_results together
+combined_tibble <- bind_rows(all_states_results) |> 
+  select(-`Votes Margin`) |> 
+  replace_na(list(Votes="0",Percent="0%"))
+
+print(combined_tibble)
+ 
+```
+
+At last, we've completed the tutorial. I hope you have been able to add web scraping to your skill toolbox. I look forward to hearing what you'll achieve with it in the nearest future. Thank you and stay leaning.
