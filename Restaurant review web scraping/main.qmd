@@ -1,0 +1,19 @@
+---
+title: "Restaurant Reviews Web Scraping"
+format: html
+editor: visual
+---
+
+## Scraping Restaurant Reviews
+
+-   Scrape delivery services -- Doordash, Uber Eats, and Postmates for a specific restaurant's rating and review data. For a pre-specified restaurant, we would like to be able to identify every location available for a given delivery service, and exhaustively scrape all available reviews (along with attendant meta-data such as location of review, date of review, text content of review, star rating, and so on).
+
+-   Scraping other restaurant rating services not tied to delivery apps -- specifically Google Maps Reviews and Yelp -- for a pre-specified restaurant. Again, we would like specific review data and restaurant rating data from these services.
+
+The final output should be a series of sqllite databases (.db files) for each scraped service containing appropriate tables to store the scraped content.
+
+## Running Code
+
+```{r}
+
+```
