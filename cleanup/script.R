@@ -55,21 +55,21 @@ combined_table <- do.call(rbind, result_tables)
 
 
 # Find all path elements with the specified class attribute
-# path_elements <- remDr$findElements(using = "css", value = 'path.leaflet-interactive')
-# 
-# path_elements[[3]]$clickElement()
-# 
-# page_source <- remDr$getPageSource()
-# page <- read_html(page_source[[1]])
-# table <- page  |>  
-#   html_element("div.border.border-gray-200.overflow-scroll.mt-3.max-h-48") |> 
-#   html_element("table.table-auto.relative.border-separate.border-spacing-0.w-full")  |> 
-#   html_table()  %>%
-#   add_column(State = page %>%
-#                html_element('p.font-jakarta.font-jakarta.text-p_18b.font-light.text-gray-600.my-auto') %>%
-#                html_text2())
-# 
-# for (i in 1:length(path_elements)) {
-#   print(i)
-# }
+path_elements <- remDr$findElements(using = "css", value = 'path.leaflet-interactive')
+
+path_elements[[3]]$clickElement()
+
+page_source <- remDr$getPageSource()
+page <- read_html(page_source[[1]])
+table <- page  |>
+  html_element("div.border.border-gray-200.overflow-scroll.mt-3.max-h-48") |>
+  html_element("table.table-auto.relative.border-separate.border-spacing-0.w-full")  |>
+  html_table()  %>%
+  add_column(State = page %>%
+               html_element('p.font-jakarta.font-jakarta.text-p_18b.font-light.text-gray-600.my-auto') %>%
+               html_text2())
+
+for (i in 1:length(path_elements)) {
+  print(i)
+}
 

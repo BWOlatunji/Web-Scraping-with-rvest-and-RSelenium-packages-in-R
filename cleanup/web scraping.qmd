@@ -55,19 +55,20 @@ presidential_result_page <-
 ```
 
 ## Explore the HTML elements
+
 It's time to explore what are the data we can extract from the web page now that we have access and control of it.
 
 ### Looking at single and multiple elements
 
 The next step is to locate and extract the web elements that contain the data that we want to scrape. You can use various functions from both the `rvest` and `RSelenium` package to do this.
 
-  - using rvest
-  
+-   using rvest
+
 In the `rvest` package, these functions take an xml_document object and a selector as arguments and return an object of class xml_nodeset or a single xml_node that match the selector. A selector is a way of identifying a web element based on its attributes, such as id, name, class, tag name, CSS selector, or XPath expression.
 
 ### Show and tell on the web page in the browser
 
-# -   single elements
+# - single elements
 
 For example, to locate and extract the bold text title - "2023 Presidential results" on the web page, you can use the html_nodes function with a CSS selector as follows:
 
@@ -77,7 +78,6 @@ president_title <- presidential_result_page %>% html_element("h3.font-jakarta.hi
 print(president_title)
 
 ```
-
 
 This will return an xml_nodeset of 20 xml_nodes that represent the text that contain the title we want.
 
@@ -89,10 +89,10 @@ president_title_text <- president_title %>% html_text()
 print(president_title_text)
 ```
 
-
 This will return a character vector.
 
-# -   multiple elements
+# - multiple elements
+
 Similarly, to locate and extract the 3 paragraph below the title we just scraped from the website. Let's take a look at the pagraph to know which selector to use. Then we can use the html_elements function with another CSS selector as follows:
 
 ```{r}
@@ -105,17 +105,16 @@ print(summary_paragraphs)
 This will return an xml_nodeset of 3 xml_nodes that represent the paragraphs that contain the summary of the election results.
 
 To extract the text from these xml_nodes, you can use the html_text function again as follows:
+
 ```{r}
 summary_paragraphs_text <- summary_paragraphs %>% html_text()
 
 print(summary_paragraphs_text)
 ```
 
-
 This will return a character vector of 3 strings.
 
-Step 4: Store and manipulate the scraped data
-The final step is to store and manipulate the scraped data as needed. You can use various functions from R to do this. For example, you can create a data frame from the scraped data using the data.frame function as follows:
+Step 4: Store and manipulate the scraped data The final step is to store and manipulate the scraped data as needed. You can use various functions from R to do this. For example, you can create a data frame from the scraped data using the data.frame function as follows:
 
 ```{r}
 data_df <- data.frame(paragraph = summary_paragraphs_text)
@@ -124,7 +123,7 @@ View(data_df)
 
 ```
 
-  - using RSelenium
+-   using RSelenium
 
 It's a bit different when using the RSelenium package. First, we need to start a Selenium server and a web browser that will be used for web scraping. You can use the `rsDriver()` function from the RSelenium package to do this. This function will automatically download the necessary files and start the server and the browser. You can specify the browser name, version, and platform as arguments to this function. For example, to start a Firefox browser on Windows, you can run the following code:
 
@@ -169,10 +168,7 @@ remDr$navigate(election_result_url)
 
 ```
 
-This will open the website in the Chrome browser.
-These functions take a remoteDriver object and a locator strategy as arguments and return an object of class webElement or a list of webElements. A locator strategy is a way of identifying a web element based on its attributes, such as id, name, class, tag name, CSS selector, or XPath expression.
-For example, to locate and extract the titles of books from the website, you can use the findElements function with a CSS selector as follows:
-
+This will open the website in the Chrome browser. These functions take a remoteDriver object and a locator strategy as arguments and return an object of class webElement or a list of webElements. A locator strategy is a way of identifying a web element based on its attributes, such as id, name, class, tag name, CSS selector, or XPath expression. For example, to locate and extract the titles of books from the website, you can use the findElements function with a CSS selector as follows:
 
 ```{r}
 # election_result_url <- 'https://www.stears.co/elections/2023/president/'
@@ -198,8 +194,7 @@ View(data_df)
 
 ### 2023 Presidential resultsIt's time to look at a practical use case. In this tutorial, it's going to be 2023 Nigeria Presidential election.
 
--   Summarized results
-We look at the summarized result data
+-   Summarized results We look at the summarized result data
 
 ```{r}
 
